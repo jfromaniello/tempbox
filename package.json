@@ -1,0 +1,43 @@
+{
+  "name": "tempbox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc --outDir ./dist/esm",
+    "build:cjs": "tsc --module nodenext --moduleResolution nodenext --declaration false --declarationMap false --outDir ./dist/cjs",
+    "build:watch": "run-p 'build:esm -- --watch' 'build:cjs -- -watch'",
+    "clean": "rm -rf dist",
+    "lint": "eslint \"./**/*.ts*\"",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "author": {
+    "name": "José F. Romaniello",
+    "url": "https://x.com/jfroma"
+  },
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@eslint/compat": "^1.2.7",
+    "@eslint/js": "^9.23.0",
+    "@types/node": "^22.13.13",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.28.0",
+    "vitest": "^3.0.9"
+  },
+  "dependencies": {
+    "tinyqueue": "^3.0.0"
+  }
+}
