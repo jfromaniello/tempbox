@@ -28,6 +28,21 @@ describe('TempBox', () => {
     expect(store.get('key2')).toBe('value2');
   });
 
+  it('should call the onSet and onDelete callbacks', () => {
+    const onSetMock = vi.fn();
+    const onDeleteMock = vi.fn();
+    const store = new TempBox({ onSet: onSetMock, onDelete: onDeleteMock });
+
+    store.set('key1', 'value1', 1000);  // TTL 1000ms
+    expect(onSetMock).toHaveBeenCalledWith('key1', 'value1');
+
+    store.delete('key1');
+    expect(onDeleteMock).toHaveBeenCalledWith('key1');
+
+    store.delete('keyX');
+    expect(onDeleteMock).not.toHaveBeenCalledWith('keyX');
+  });
+
   it('should expire keys with TTL and remove them automatically after the TTL', () => {
     const store = new TempBox();
     // Store a key with a TTL

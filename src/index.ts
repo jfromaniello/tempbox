@@ -12,6 +12,9 @@ type MapType = {
 
 type Params = {
   onExpire?: (key: any, value: any) => void;
+  onSet?: (key: any, value: any) => void;
+  onDelete?: (key: any) => void;
+  onClear?: () => void;
 }
 
 /**
@@ -24,12 +27,19 @@ export class TempBox {
   private timer: NodeJS.Timeout | null;
   private queue: TinyQueue<QueuedValue>;
   private onExpire?: (key: any, value: any) => void;
+  private onClear?: () => void;
+  private onSet?: (key: any, value: any) => void;
+  private onDelete?: (key: any) => void;
 
   constructor(params?: Params) {
     this.data = new Map<string, MapType>();
     this.queue = new TinyQueue<QueuedValue>([], (a, b) => a.expiresAt - b.expiresAt);
     this.timer = null;
+
     this.onExpire = params?.onExpire;
+    this.onSet = params?.onSet;
+    this.onDelete = params?.onDelete;
+    this.onClear = params?.onClear;
   }
 
   /**
@@ -50,6 +60,8 @@ export class TempBox {
       this.queue.push({ key, expiresAt });
       this._scheduleNext();
     }
+
+    this.onSet?.(key, value);
   }
 
   /**
@@ -79,7 +91,11 @@ export class TempBox {
    * @returns {boolean} - True if the key was deleted, false if the key did not exist.
    */
   delete(key: string): boolean {
-    return this.data.delete(key);
+    const deleted = this.data.delete(key);
+    if (deleted) {
+      this.onDelete?.(key);
+    }
+    return deleted;
   }
 
   /**
@@ -89,8 +105,16 @@ export class TempBox {
    * @param key {string} - The key to check
    * @returns {boolean} - True if the key exists and has not expired, false otherwise.
    */
-  has(key: string) {
+  has(key: string): boolean {
     return this.get(key) !== undefined;
+  }
+
+
+  clear() {
+    this.data.clear();
+    this.stop();
+    while (this.queue.length > 0) this.queue.pop();
+    this.onClear?.();
   }
 
   _expire(key: string, entry: any) {
