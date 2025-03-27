@@ -14,6 +14,7 @@
     }
   },
   "scripts": {
+    "prepare": "npm run build",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc --outDir ./dist/esm",
     "build:cjs": "tsc --module nodenext --moduleResolution nodenext --declaration false --declarationMap false --outDir ./dist/cjs",
